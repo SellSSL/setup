@@ -148,7 +148,7 @@ function nginx_repo {
 	if [ -f /etc/debian_version ] ; then
 		 DIST=`head -6 /etc/issue | cut -c 1-6`
 		 if [ ${DIST} = "Ubuntu" ] ; then
-			sudo echo "deb http://nginx.org/packages/ubuntu/ $(lsb_release -sc) nginx" > /etc/apt/sources.list.d/nginx.list
+			sudo echo "deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -sc) nginx" > /etc/apt/sources.list.d/nginx.list
 			# sudo echo "deb http://nginx.org/packages/mainline/ubuntu/ trusty nginx" > /etc/apt/sources.list.d/nginx.list
 			wget http://nginx.org/keys/nginx_signing.key
 			sudo apt-key add nginx_signing.key
@@ -211,8 +211,24 @@ END
     cd /var/www
     sudo unzip -o /var/www/html.zip
     sudo rm -rf /var/www/html.zip
-    cat > /etc/nginx/fastcgi_php <<END
-#
+
+    cat > /etc/nginx/cfips.conf <<END
+# Cloudflare IPs
+set_real_ip_from 103.21.244.0/22;
+set_real_ip_from 103.22.200.0/22;
+set_real_ip_from 103.31.4.0/22;
+set_real_ip_from 104.16.0.0/12;
+set_real_ip_from 108.162.192.0/18;
+set_real_ip_from 141.101.64.0/18;
+set_real_ip_from 162.158.0.0/15;
+set_real_ip_from 172.64.0.0/13;
+set_real_ip_from 173.245.48.0/20;
+set_real_ip_from 188.114.96.0/20;
+set_real_ip_from 190.93.240.0/20;
+set_real_ip_from 197.234.240.0/22;
+set_real_ip_from 198.41.128.0/17;
+set_real_ip_from 199.27.128.0/21;
+real_ip_header CF-Connecting-IP;
 END
     cat > /etc/nginx/conf.d/default.conf <<END
 server {
@@ -501,7 +517,7 @@ END
 }
 
 function install_php7_fpm {
-    sudo echo "deb http://ppa.launchpad.net/ondrej/php-7.0/ubuntu trusty main"  >> /etc/apt/sources.list.d/php7.list
+    sudo echo "deb http://ppa.launchpad.net/ondrej/php-7.0/ubuntu $(lsb_release -sc) main"  >> /etc/apt/sources.list.d/php7.list
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E5267A6C 
     sudo apt-get -q -y --force-yes update
     DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install php7.0-fpm php7.0-mysql php7.0-gd php7.0-mcrypt php7.0-imap php7.0-snmp php7.0-curl snmp
@@ -668,6 +684,7 @@ server {
     server_name $1;
     root /var/www/$1;
     include /etc/nginx/fastcgi_php;
+    include /etc/nginx/cfips.conf;
     index index.php;
     location / {
 		try_files \$uri \$uri/ /index.php?\$args;
@@ -732,10 +749,9 @@ server {
     server_name $1;
     root /var/www/$1;
     include /etc/nginx/fastcgi_php;
-   
+    include /etc/nginx/cfips.conf;
+
     index index.php;
-      
-    
 }
 END
     invoke-rc.d nginx reload
@@ -836,8 +852,8 @@ phpp)
     ;;
 system)
     remove_unneeded
-	nginx_repo
     update_upgrade
+	nginx_repo
     install_dash
     install_syslogd
     ;;
