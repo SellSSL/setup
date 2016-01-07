@@ -851,8 +851,8 @@ phpp)
     install_phpp
     ;;
 system)
-    remove_unneeded
     update_upgrade
+    remove_unneeded
 	nginx_repo
     install_dash
     install_syslogd
