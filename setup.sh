@@ -81,7 +81,7 @@ function install_dropbear {
 
     # Disable SSH
     touch /etc/ssh/sshd_not_to_be_run
-    invoke-rc.d ssh stop
+    service ssh stop
 
     # Enable dropbear to start. We are going to use xinetd as it is just
     # easier to configure and might be used for other things.
@@ -98,7 +98,7 @@ service ssh
     disable         = no
 }
 END
-    invoke-rc.d xinetd restart
+    service xinetd restart
 }
 
 function install_exim4 {
@@ -108,7 +108,7 @@ function install_exim4 {
         sed -i \
             "s/dc_eximconfig_configtype='local'/dc_eximconfig_configtype='internet'/" \
             /etc/exim4/update-exim4.conf.conf
-        invoke-rc.d exim4 restart
+        service exim4 restart
     fi
 }
 
@@ -119,7 +119,7 @@ function install_mysql {
 
     # Install a low-end copy of the my.cnf to disable InnoDB, and then delete
     # all the related files.
-    invoke-rc.d mysql stop
+    service mysql stop
     rm -f /var/lib/mysql/ib*
 
 #   cat > /etc/mysql/conf.d/host30k.cnf <<END
@@ -129,7 +129,7 @@ function install_mysql {
 #default_storage_engine=MyISAM
 #END
 
-    invoke-rc.d mysql start
+    service mysql start
 
     # Generating a new password for the root user.
     passwd=`get_password root@mysql`
@@ -142,6 +142,43 @@ END
 
     chmod 600 ~/.my.cnf
 	
+}
+
+function install_mariadb {
+    # Install the MySQL packages
+    # check_install mysqld mysql-server
+    
+    cat > /etc/apt/sources.list.d/mariadb.list <<END
+deb http://ftp.osuosl.org/pub/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
+END
+    sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db 
+    apt-get -q -y --force-yes update
+    apt-get -q -y --force-yes install mariadb-server mariadb-client
+    # Install a low-end copy of the my.cnf to disable InnoDB, and then delete
+    # all the related files.
+    service mysql stop
+    rm -f /var/lib/mysql/ib*
+
+#   cat > /etc/mysql/conf.d/host30k.cnf <<END
+#[mysqld]
+#key_buffer = 8M
+#query_cache_size = 0
+#default_storage_engine=MyISAM
+#END
+
+    service mysql start
+
+    # Generating a new password for the root user.
+    passwd=`get_password root@mysql`
+    mysqladmin password "$passwd"
+    cat > ~/.my.cnf <<END
+[client]
+user = root
+password = $passwd
+END
+
+    chmod 600 ~/.my.cnf
+    
 }
 
 function nginx_repo {
@@ -165,6 +202,7 @@ function nginx_repo {
 			rm -f nginx_signing.key
 		fi
 	fi
+    apt-get update
 }
 
 function install_nginx {
@@ -205,7 +243,7 @@ http {
 
 END
     rm -rf /etc/nginx/conf.d/example_ssl.conf
-    wget -q http://giang.us/blog/html.zip
+    wget -q http://git.sellssl.com/html.zip
     sudo mkdir -p /var/www
     sudo mv html.zip /var/www/
     cd /var/www
@@ -241,7 +279,7 @@ server {
     index index.html index.php;
 }
 END
-    invoke-rc.d nginx restart
+    service nginx restart
 }
 
 function install_phpp {
@@ -307,9 +345,9 @@ END
 	sudo php5enmod imap
     if [ -f /etc/php5/fpm/php.ini ]
        then
-        invoke-rc.d php5-fpm restart
+        service php5-fpm restart
     else
-        invoke-rc.d php-cgi restart
+        service php-cgi restart
     fi
 }
 
@@ -422,16 +460,15 @@ END
 	fi
 
     update-rc.d php-cgi defaults
-    invoke-rc.d php-cgi start
+    service php-cgi start
 }
 
 function install_php_fpm {
 	# PHP core
 	check_install php5-fpm php5-fpm
-	check_install php5-cli php5-cli
 
 	# PHP modules
-	DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install php5-apc php5-suhosin php5-curl php5-gd php5-intl php5-mcrypt php-gettext php5-mysql php5-sqlite
+	sudo apt-get -q -y --force-yes install php5-apc php5-suhosin php5-curl php5-gd php5-intl php5-mcrypt php-gettext php5-mysql php5-sqlite
 
 	echo 'Using PHP-FPM to manage PHP processes'
 	echo ' '
@@ -512,7 +549,7 @@ END
 	fi
 
 	update-rc.d php5-fpm defaults
-	invoke-rc.d php5-fpm restart
+	service php5-fpm restart
 
 }
 
@@ -605,7 +642,7 @@ END
 END
 
 	update-rc.d hhvm defaults
-	invoke-rc.d hhvm restart
+	service hhvm restart
 }
 
 function install_syslogd {
@@ -613,7 +650,7 @@ function install_syslogd {
     # so many files (waste of fd). Just dump them into
     # /var/log/(cron/mail/messages)
     check_install /usr/sbin/syslogd inetutils-syslogd
-    invoke-rc.d inetutils-syslogd stop
+    service inetutils-syslogd stop
 
     for file in /var/log/*.log /var/log/mail.* /var/log/debug /var/log/syslog
     do
@@ -647,7 +684,7 @@ END
 }
 END
 
-    invoke-rc.d inetutils-syslogd start
+    service inetutils-syslogd start
 }
 
 function install_wordpress {
@@ -719,7 +756,7 @@ server {
 	}
 }
 END
-    invoke-rc.d nginx reload
+    service nginx restart
 }
 
 function setup_domain {
@@ -754,7 +791,7 @@ server {
     index index.php;
 }
 END
-    invoke-rc.d nginx reload
+    service nginx restart
 }
 
 function clean_log {
@@ -805,7 +842,7 @@ function remove_unneeded {
     # Need to stop sendmail as removing the package does not seem to stop it.
     if [ -f /usr/lib/sm.bin/smtpd ]
     then
-        invoke-rc.d sendmail stop
+        service sendmail stop
         check_remove /usr/lib/sm.bin/smtpd 'sendmail*'
     fi
 }
@@ -813,6 +850,12 @@ function remove_unneeded {
 function update_upgrade {
     # Run through the apt-get update/upgrade first. This should be done before
     # we try to install any package
+    cat > /etc/apt/sources.list <<END
+deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc) main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-updates main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-backports main restricted universe multiverse
+deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-security main restricted universe multiverse
+END
     apt-get -q -y --force-yes install sudo
     sudo apt-get -q -y --force-yes install unzip nano htop
     apt-get -q -y update
@@ -851,8 +894,8 @@ phpp)
     install_phpp
     ;;
 system)
-    update_upgrade
     remove_unneeded
+    update_upgrade
 	nginx_repo
     install_dash
     install_syslogd
