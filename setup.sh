@@ -226,12 +226,10 @@ http {
 	types_hash_max_size 2048;
 	client_max_body_size 1024m;
 	server_names_hash_bucket_size 64;
-	
+    server_tokens off;
+
 	include /etc/nginx/mime.types;
 	default_type application/octet-stream;
-
-	# ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
-	# ssl_prefer_server_ciphers on;
 
 	access_log /var/log/nginx/access.log;
 	error_log /var/log/nginx/error.log;
