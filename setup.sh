@@ -766,7 +766,12 @@ function setup_domain {
         mysql
         
         echo "MySQL DB: $dbname User: $userid Pass: $passwd"
-
+    cat > "/root/$1" <<END
+Database for $1
+- DB: $dbname
+- User: $userid
+- Pass: $passwd
+END
     # Setting up Nginx mapping
     cat > "/etc/nginx/conf.d/$1.conf" <<END
 server {
