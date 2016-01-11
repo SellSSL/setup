@@ -249,7 +249,9 @@ END
     cd /var/www
     sudo unzip -o /var/www/html.zip
     sudo rm -rf /var/www/html.zip
+cat > /etc/nginx/fastcgi_php <<END
 
+END
     cat > /etc/nginx/cfips.conf <<END
 # Cloudflare IPs
 set_real_ip_from 103.21.244.0/22;
@@ -273,6 +275,7 @@ server {
     listen 80;
     server_name _;
     root /var/www/html;
+    include /etc/nginx/cfips.conf;
     include /etc/nginx/fastcgi_php;
     error_page 404 /error_pages/404.html;
     error_page 403 /error_pages/403.html;
@@ -834,14 +837,20 @@ function remove_unneeded {
 function update_upgrade {
     # Run through the apt-get update/upgrade first. This should be done before
     # we try to install any package
-    cat > /etc/apt/sources.list <<END
-deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc) main restricted universe multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-updates main restricted universe multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-backports main restricted universe multiverse
-deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-security main restricted universe multiverse
+    apt-get install -y sudo
+#     sudo cat > /etc/apt/sources.list <<END
+# deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc) main restricted universe multiverse
+# deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-updates main restricted universe multiverse
+# deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-backports main restricted universe multiverse
+# deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-security main restricted universe multiverse
+# END
+    sudo cat > /etc/apt/sources.list <<END
+deb http://mirrors.rit.edu/ubuntu/ $(lsb_release -sc) main restricted universe multiverse
+deb http://mirrors.rit.edu/ubuntu/ $(lsb_release -sc)-updates main restricted universe multiverse
+deb http://mirrors.rit.edu/ubuntu/ $(lsb_release -sc)-backports main restricted universe multiverse
+deb http://mirrors.rit.edu/ubuntu/ $(lsb_release -sc)-security main restricted universe multiverse
 END
-    apt-get -q -y --force-yes install sudo
-    sudo apt-get -q -y --force-yes install unzip nano htop
+    sudo apt-get install -q -y --force-yes unzip nano htop
     apt-get -q -y update
     apt-get -q -y upgrade
 }
