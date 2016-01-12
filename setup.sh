@@ -795,7 +795,10 @@ function clean_log {
 	cat /dev/null > /var/log/btmp
 
 	rm -f /var/log/*.gz
+    rm -f /var/log/*.0
+    rm -f /var/log/*.1
 	rm -f /var/log/nginx/*.gz
+    rm -f /var/log/nginx/*.1
 	rm -f /var/log/apt/*.gz
 	rm -f /var/log/upstart/*.gz
 	rm -f /var/log/mysql/*.gz
