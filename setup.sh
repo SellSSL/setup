@@ -7,7 +7,7 @@ function check_install {
         shift
         while [ -n "$1" ]
         do
-            DEBIAN_FRONTEND=noninteractive apt-get -q -y install "$1"
+            DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install "$1"
             print_info "$1 installed for $executable"
             shift
         done
@@ -19,7 +19,7 @@ function check_install {
 function check_remove {
     if [ -n "`which "$1" 2>/dev/null`" ]
     then
-        DEBIAN_FRONTEND=noninteractive apt-get -q -y remove --purge "$2"
+        DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes remove --purge "$2"
         print_info "$2 removed"
     else
         print_warn "$2 is not installed"
