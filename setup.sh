@@ -7,7 +7,7 @@ function check_install {
         shift
         while [ -n "$1" ]
         do
-            DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install "$1"
+            DEBIAN_FRONTEND=noninteractive apt-get -q -y install "$1"
             print_info "$1 installed for $executable"
             shift
         done
@@ -152,8 +152,8 @@ function install_mariadb {
 deb http://ftp.osuosl.org/pub/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 END
     sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db 
-    apt-get -q -y --force-yes update
-    apt-get -q -y --force-yes install mariadb-server mariadb-client
+    apt-get update -y
+    apt-get install -y mariadb-server mariadb-client
     # Install a low-end copy of the my.cnf to disable InnoDB, and then delete
     # all the related files.
     service mysql stop
@@ -285,7 +285,7 @@ END
 
 function install_phpp {
 	check_install wget wget
-	sudo apt-get -q -y --force-yes install snmp mcrypt php5-gd php5-curl php5-imap php5-mcrypt php5-ldap php-apc
+	sudo apt-get install -y snmp mcrypt php5-gd php5-curl php5-imap php5-mcrypt php5-ldap php-apc
 	if [ `uname -m` = "x86_64" ]; then
 		wget -q http://downloads2.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
 		tar -xf ioncube_loaders_lin_x86-64.tar.gz
@@ -469,7 +469,11 @@ function install_php_fpm {
 	check_install php5-fpm php5-fpm
 
 	# PHP modules
-	sudo apt-get -q -y --force-yes install php5-apcu php5-curl php5-gd php5-intl php5-mcrypt php-gettext php5-mysql
+	sudo apt-get -q -y install php5-apcu php5-curl php5-gd php5-intl php5-mcrypt mcrypt php-gettext php5-mysql
+    if [ ! -f "/etc/php5/fpm/conf.d/20-mcrypt.ini" ]
+        then
+        ln -s /etc/php5/mods-available/mcrypt.ini /etc/php5/fpm/conf.d/20-mcrypt.ini
+    fi
 
 	echo 'Using PHP-FPM to manage PHP processes'
 
@@ -541,8 +545,8 @@ END
 function install_php7_fpm {
     sudo echo "deb http://ppa.launchpad.net/ondrej/php-7.0/ubuntu $(lsb_release -sc) main"  >> /etc/apt/sources.list.d/php7.list
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E5267A6C 
-    sudo apt-get -q -y --force-yes update
-    DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install php7.0-fpm php7.0-mysql php7.0-gd php7.0-mcrypt php7.0-imap php7.0-snmp php7.0-curl snmp
+    sudo apt-get -q -y update
+    DEBIAN_FRONTEND=noninteractive apt-get -q -y install php7.0-fpm php7.0-mysql php7.0-gd php7.0-mcrypt php7.0-imap php7.0-snmp php7.0-curl snmp
 
     cat > /etc/nginx/fastcgi_php <<END
 location ~ \.php\$ {
@@ -856,7 +860,7 @@ END
 # deb http://mirrors.rit.edu/ubuntu/ $(lsb_release -sc)-backports main restricted universe multiverse
 # deb http://mirrors.rit.edu/ubuntu/ $(lsb_release -sc)-security main restricted universe multiverse
 # END
-    sudo apt-get install -q -y --force-yes unzip nano htop
+    sudo apt-get install -q -y unzip nano htop
     apt-get -q -y update
     apt-get -q -y upgrade
 }
