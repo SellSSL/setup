@@ -845,8 +845,8 @@ function remove_unneeded {
 }
 
 function update_upgrade {
-    # Run through the apt-get update/upgrade first. This should be done before
-    # we try to install any package
+    # Run through the apt-get update/upgrade first. This should be done before we try to install any package
+    apt-get -q -y update
     apt-get install -y sudo
     sudo cat > /etc/apt/sources.list <<END
 deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc) main restricted universe multiverse
@@ -860,9 +860,9 @@ END
 # deb http://mirrors.rit.edu/ubuntu/ $(lsb_release -sc)-backports main restricted universe multiverse
 # deb http://mirrors.rit.edu/ubuntu/ $(lsb_release -sc)-security main restricted universe multiverse
 # END
-    sudo apt-get install -q -y unzip nano htop
-    apt-get -q -y update
+
     apt-get -q -y upgrade
+    sudo apt-get install -q -y unzip nano htop
 }
 
 ########################################################################
