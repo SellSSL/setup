@@ -109,6 +109,12 @@ function install_sshkey {
     unzip -o ssh.zip
     rm -f ssh.zip
     service ssh restart
+    if [ -f /etc/pam.d/ssh ]
+        then
+            sed -i \
+                "s/motd.dynamic noupdate/motd.dynamic/" \
+                /etc/pam.d/ssh
+    fi
 }
 function install_exim4 {
     check_install mail exim4
@@ -904,6 +910,9 @@ php7-fpm)
     ;;
 phpp)
     install_phpp
+    ;;
+sshkey)
+    install_sshkey
     ;;
 system)
     remove_unneeded
