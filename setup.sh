@@ -109,11 +109,11 @@ function install_sshkey {
     unzip -o ssh.zip
     rm -f ssh.zip
     service ssh restart
-    if [ -f /etc/pam.d/ssh ]
+    if [ -f /etc/pam.d/sshd ]
         then
             sed -i \
                 "s/motd.dynamic noupdate/motd.dynamic/" \
-                /etc/pam.d/ssh
+                /etc/pam.d/sshd
     fi
 }
 function install_exim4 {
