@@ -169,8 +169,8 @@ function install_mariadb {
 deb http://ftp.osuosl.org/pub/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 END
     sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db 
-    apt-get update -y
-    apt-get install -y mariadb-server mariadb-client
+    apt-get update -y -q --forece-yes
+    check_install mysql mariadb-client mariadb-server
     # Install a low-end copy of the my.cnf to disable InnoDB, and then delete
     # all the related files.
     service mysql stop
@@ -302,7 +302,7 @@ END
 
 function install_phpp {
 	check_install wget wget
-	sudo apt-get install -y snmp mcrypt php5-gd php5-curl php5-imap php5-mcrypt php5-ldap php-apc
+	DEBIAN_FRONTEND=noninteractive apt-get -y -q --force-yes install snmp mcrypt php5-gd php5-curl php5-imap php5-mcrypt php5-ldap php-apc
 	if [ `uname -m` = "x86_64" ]; then
 		wget -q http://downloads2.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
 		tar -xf ioncube_loaders_lin_x86-64.tar.gz
@@ -486,7 +486,7 @@ function install_php_fpm {
 	check_install php5-fpm php5-fpm
 
 	# PHP modules
-	sudo apt-get -q -y install php5-apcu php5-curl php5-gd php5-intl php5-mcrypt mcrypt php-gettext php5-mysql
+	DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install php5-apcu php5-curl php5-gd php5-intl php5-mcrypt mcrypt php-gettext php5-mysql
     if [ ! -f "/etc/php5/fpm/conf.d/20-mcrypt.ini" ]
         then
         ln -s /etc/php5/mods-available/mcrypt.ini /etc/php5/fpm/conf.d/20-mcrypt.ini
@@ -864,7 +864,7 @@ function remove_unneeded {
 function update_upgrade {
     # Run through the apt-get update/upgrade first. This should be done before we try to install any package
     apt-get -q -y update
-    apt-get install -y sudo
+    apt-get install -y -q sudo
     sudo cat > /etc/apt/sources.list <<END
 deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc) main restricted universe multiverse
 deb mirror://mirrors.ubuntu.com/mirrors.txt $(lsb_release -sc)-updates main restricted universe multiverse
