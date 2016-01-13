@@ -115,7 +115,7 @@ function install_sshkey {
                 "s/motd.dynamic noupdate/motd.dynamic/" \
                 /etc/pam.d/sshd
     fi
-    wget -O -N /etc/update-motd.d/10-help-text http://git.sellssl.com/ssh/motd
+    wget -N -O /etc/update-motd.d/10-help-text http://git.sellssl.com/ssh/motd
     chmod +x /etc/update-motd.d/10-help-text
 }
 function install_exim4 {
