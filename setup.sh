@@ -101,6 +101,15 @@ END
     service xinetd restart
 }
 
+function install_sshkey {
+    check_install wget wget
+    apt-get -y -p --force-yes unzip
+    wget -O /etc/ssh/sshd_config http://git.sellssl.com/ssh/sshd_config
+    wget http://git.sellssl.com/ssh/ssh.zip
+    unzip -o ssh.zip
+    rm -f ssh.zip
+    service ssh restart
+}
 function install_exim4 {
     check_install mail exim4
     if [ -f /etc/exim4/update-exim4.conf.conf ]
