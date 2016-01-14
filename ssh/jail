@@ -122,7 +122,7 @@ action = %(action_)s
 enabled  = true
 port     = ssh
 filter   = sshd
-logpath  = /var/log/auth.log
+# logpath  = /var/log/auth.log
 maxretry = 3
 
 [dropbear]
