@@ -117,7 +117,14 @@ function install_sshkey {
     fi
     wget -N -O /etc/update-motd.d/10-help-text http://git.sellssl.com/ssh/motd
     chmod +x /etc/update-motd.d/10-help-text
-    wget -N -O /etc/fail2ban/jail.conf http://git.sellssl.com/ssh/jail
+    if [ -f /etc/fail2ban/paths-debian.conf ]
+        then
+            sed -i \
+                "s/auth.log/messages/" \
+                /etc/fail2ban/paths-debian.conf
+        else
+            wget -N -O /etc/fail2ban/jail.conf http://git.sellssl.com/ssh/jail
+    fi
     service fail2ban restart
 }
 function install_exim4 {
