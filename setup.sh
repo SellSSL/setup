@@ -711,11 +711,11 @@ function install_wordpress {
     fi
 
     # Downloading the WordPress' latest and greatest distribution.
-    mkdir /tmp/wordpress.$$
+    mkdir /home/tmp/wordpress.$$
     wget --no-check-certificate -O  - http://wordpress.org/latest.tar.gz | \
-        tar zxf - -C /tmp/wordpress.$$
-    mv /tmp/wordpress.$$/wordpress "/var/www/$1"
-    rm -rf /tmp/wordpress.$$
+        tar zxf - -C /home/tmp/wordpress.$$
+    mv /home/tmp/wordpress.$$/wordpress "/var/www/$1"
+    rm -rf /home/tmp/wordpress.$$
     chown www-data:www-data -R "/var/www/$1"
 
     # Setting up the MySQL database
