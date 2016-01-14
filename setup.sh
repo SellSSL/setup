@@ -847,6 +847,7 @@ function clean_log {
 	rm -f /var/log/apt/*.gz
 	rm -f /var/log/upstart/*.gz
 	rm -f /var/log/mysql/*.gz
+    apt-get -q -y autoclean; apt-get -q -y autoremove
 }
 
 function print_info {
