@@ -122,10 +122,11 @@ function install_sshkey {
             sed -i \
                 "s/auth.log/messages/" \
                 /etc/fail2ban/paths-debian.conf
+            systemctl reset-failed fail2ban.service; systemctl start fail2ban.service
         else
             wget -N -O /etc/fail2ban/jail.conf http://git.sellssl.com/ssh/jail
+            service fail2ban restart
     fi
-    service fail2ban restart
 }
 function install_exim4 {
     check_install mail exim4
