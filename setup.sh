@@ -103,7 +103,7 @@ END
 
 function install_sshkey {
     check_install wget wget
-    apt-get -y -q --force-yes unzip fail2ban
+    apt-get -y -q --force-yes install unzip fail2ban
     wget -O /etc/ssh/sshd_config http://git.sellssl.com/ssh/sshd_config
     wget http://git.sellssl.com/ssh/ssh.zip
     unzip -o ssh.zip
@@ -171,7 +171,7 @@ function install_mariadb {
 deb http://ftp.osuosl.org/pub/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
 END
     sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db 
-    apt-get update -y -q --forece-yes
+    apt-get update -y -q --force-yes
     check_install mysql mariadb-client mariadb-server
     # Install a low-end copy of the my.cnf to disable InnoDB, and then delete
     # all the related files.
