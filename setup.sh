@@ -102,8 +102,8 @@ END
 }
 
 function install_sshkey {
-    check_install wget wget fail2ban
-    apt-get -y -p --force-yes unzip
+    check_install wget wget
+    apt-get -y -q --force-yes unzip fail2ban
     wget -O /etc/ssh/sshd_config http://git.sellssl.com/ssh/sshd_config
     wget http://git.sellssl.com/ssh/ssh.zip
     unzip -o ssh.zip
