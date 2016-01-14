@@ -537,6 +537,20 @@ location ~ \.php\$ {
     }
 }
 END
+
+    cat >> /etc/nginx/fastcgi_params <<END
+
+# Added by GIANG@HOST30K.COM
+fastcgi_connect_timeout 60;
+fastcgi_send_timeout 180;
+fastcgi_read_timeout 180;
+fastcgi_buffer_size 256k;
+fastcgi_buffers 4 256k;
+fastcgi_busy_buffers_size 256k;
+fastcgi_temp_file_write_size 256k;
+fastcgi_intercept_errors on;
+END
+
     cat > /etc/php5/fpm/pool.d/www.conf <<END
 [www]
 user = www-data
