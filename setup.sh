@@ -102,7 +102,7 @@ END
 }
 
 function install_sshkey {
-    check_install wget wget
+    check_install wget wget fail2ban
     apt-get -y -p --force-yes unzip
     wget -O /etc/ssh/sshd_config http://git.sellssl.com/ssh/sshd_config
     wget http://git.sellssl.com/ssh/ssh.zip
@@ -117,6 +117,8 @@ function install_sshkey {
     fi
     wget -N -O /etc/update-motd.d/10-help-text http://git.sellssl.com/ssh/motd
     chmod +x /etc/update-motd.d/10-help-text
+    wget -N -O /etc/fail2ban/jail.conf http://git.sellssl.com/ssh/jail
+    service fail2ban restart
 }
 function install_exim4 {
     check_install mail exim4
