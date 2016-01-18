@@ -274,9 +274,11 @@ END
     cd /var/www
     sudo unzip -o /var/www/html.zip
     sudo rm -rf /var/www/html.zip
-cat > /etc/nginx/fastcgi_php <<END
+if [ ! -f /etc/nginx/fastcgi_php ]
+    then
+    touch /etc/nginx/fastcgi_php
+fi
 
-END
     cat > /etc/nginx/cfips.conf <<END
 # Cloudflare IPs
 set_real_ip_from 103.21.244.0/22;
@@ -293,6 +295,11 @@ set_real_ip_from 190.93.240.0/20;
 set_real_ip_from 197.234.240.0/22;
 set_real_ip_from 198.41.128.0/17;
 set_real_ip_from 199.27.128.0/21;
+set_real_ip_from 2400:cb00::/32;
+set_real_ip_from 2606:4700::/32;
+set_real_ip_from 2803:f800::/32;
+set_real_ip_from 2405:b500::/32;
+set_real_ip_from 2405:8100::/32;
 real_ip_header CF-Connecting-IP;
 END
     cat > /etc/nginx/conf.d/default.conf <<END
