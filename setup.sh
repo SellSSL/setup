@@ -570,7 +570,7 @@ listen.group = www-data
 pm = ondemand
 pm.max_children = 10
 pm.max_requests = 500
-pm.process_idle_timeout = 10s;
+pm.process_idle_timeout = 10s
 php_flag[expose_php] = off
 php_value[max_execution_time] = 120
 php_value[memory_limit] = 32M
@@ -594,7 +594,7 @@ function install_php7_fpm {
     sudo echo "deb http://ppa.launchpad.net/ondrej/php-7.0/ubuntu $(lsb_release -sc) main"  >> /etc/apt/sources.list.d/php7.list
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E5267A6C 
     sudo apt-get -q -y update
-    DEBIAN_FRONTEND=noninteractive apt-get -q -y install php7.0-fpm php7.0-mysql php7.0-gd php7.0-mcrypt php7.0-imap php7.0-snmp php7.0-curl snmp
+    DEBIAN_FRONTEND=noninteractive apt-get -q -y install php7.0-fpm php7.0-mysql php7.0-gd php7.0-mcrypt php7.0-imap php7.0-snmp php7.0-curl php-apcu snmp
 
     cat > /etc/nginx/fastcgi_php <<END
 location ~ \.php\$ {
@@ -608,6 +608,27 @@ location ~ \.php\$ {
     }
 }
 END
+
+    if [ -f /etc/php/mods-available/apcu.ini ]
+        then
+    cat > /etc/php/mods-available/apcu.ini <<END
+extension=apc.so
+
+apc.enabled=1
+apc.shm_segments=1
+apc.shm_size=32M
+apc.ttl=7200
+apc.user_ttl=7200
+apc.num_files_hint=1024
+apc.mmap_file_mask=/tmp/apc.XXXXXX
+apc.max_file_size = 1M
+apc.post_max_size = 1000M
+apc.upload_max_filesize = 1000M
+apc.enable_cli=0
+apc.rfc1867=0
+END
+    fi
+
     cat > /etc/php/7.0/fpm/pool.d/www.conf <<END
 [www]
 user = www-data
@@ -623,7 +644,7 @@ pm.max_requests = 500
 pm.process_idle_timeout = 10s;
 php_flag[expose_php] = off
 php_value[max_execution_time] = 120
-php_value[memory_limit] = 32M
+php_value[memory_limit] = 64M
 END
     if [ -f /etc/php/7.0/fpm/php.ini ]
         then
