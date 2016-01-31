@@ -865,17 +865,17 @@ function install_dkim {
 	
     apt-get -y --force-yes -q install postfix opendkim opendkim-tools
 	
-	opendkim-genkey -s dkim -d "$1"
+	opendkim-genkey -s dkim -d $1
 	chown opendkim:opendkim dkim.private
-	mkdir /etc/nginx/dkim
-	mv dkim.private /etc/nginx/dkim
-	mv dkim.txt /etc/nginx/dkim
+	mkdir -p /etc/nginx/dkim
+	mv -f dkim.private /etc/nginx/dkim
+	mv -f dkim.txt /etc/nginx/dkim
 	
 	sed -i \
 		"s/\#Domain/Domain/;s/\#KeyFile/KeyFile/;s/\#Selector/Selector/" \
 		/etc/opendkim.conf
 	sed -i \
-		"s/example.com/$1/;s/\/etc\/mail\/dkim.key/\/etc\/nginx\/dkim\/dkim.private/;s/\2007/$2/" \
+		"s/example.com/$1/;s/\/etc\/mail\/dkim.key/\/etc\/nginx\/dkim\/dkim.private/;s/2007/$2/" \
 		/etc/opendkim.conf
 
 	echo 'SOCKET="inet:8891@localhost"' >> /etc/default/opendkim
