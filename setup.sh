@@ -612,7 +612,7 @@ END
     if [ -f /etc/php/mods-available/apcu.ini ]
         then
     cat > /etc/php/mods-available/apcu.ini <<END
-extension=apc.so
+extension=apcu.so
 
 apc.enabled=1
 apc.shm_segments=1
@@ -857,6 +857,41 @@ END
     service nginx restart
 }
 
+function install_dkim {
+    if [ -z "$1" ] || [ -z "$2" ]
+    then
+        die "Usage: `basename $0` dkim <domain> <selector>"
+    fi
+	
+    apt-get -y --force-yes -q install postfix opendkim opendkim-tools
+	
+	opendkim-genkey -s dkim -d "$1"
+	chown opendkim:opendkim dkim.private
+	mkdir /etc/nginx/dkim
+	mv dkim.private /etc/nginx/dkim
+	mv dkim.txt /etc/nginx/dkim
+	
+	sed -i \
+		"s/\#Domain/Domain/;s/\#KeyFile/KeyFile/;s/\#Selector/Selector/" \
+		/etc/opendkim.conf
+	sed -i \
+		"s/example.com/$1/;s/\/etc\/mail\/dkim.key/\/etc\/nginx\/dkim\/dkim.private/;s/\2007/$2/" \
+		/etc/opendkim.conf
+
+	echo 'SOCKET="inet:8891@localhost"' >> /etc/default/opendkim
+
+	cat >> /etc/postfix/main.cf <<END
+# Listen too OpenDKIM port too
+milter_default_action = accept
+milter_protocol = 2
+smtpd_milters = inet:localhost:8891
+non_smtpd_milters = inet:localhost:8891
+END
+
+    service opendkim restart
+	service postfix restart
+}
+
 function clean_log {
 	cat /dev/null > /var/log/nginx/error.log
 	cat /dev/null > /var/log/nginx/access.log
@@ -983,6 +1018,9 @@ wordpress)
 domain)
     setup_domain $2
 	;;
+dkim)
+    install_dkim $2 $3
+    ;;
 clean)
     clean_log
 	;;
