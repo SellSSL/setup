@@ -330,6 +330,14 @@ function install_phpp {
 		tar -xf zend-loader-php5.5-linux-x86_64.tar.gz
 		cp -f zend-loader-php5.5-linux-x86_64/ZendGuardLoader.so /usr/lib/php5/20121212/
 		rm -f -r zend-loader*
+
+        cat > /etc/php5/cli/conf.d/01-ioncube.ini <<END
+zend_extension=/usr/lib/php5/20121212/ioncube_loader_lin_5.5.so
+END
+        cat > /etc/php5/cli/conf.d/10-zenguard.ini <<END
+zend_extension=/usr/lib/php5/20121212/ZendGuardLoader.so
+END
+
         if [ -f /etc/php5/fpm/php.ini ]
             then
         cat > /etc/php5/fpm/conf.d/01-ioncube.ini <<END
@@ -358,6 +366,12 @@ END
 		cp -f ioncube/ioncube_loader_lin_5.5.so /usr/lib/php5/20121212+lfs/
 		rm -f -r ioncube*
 
+        cat > /etc/php5/cli/conf.d/01-ioncube.ini <<END
+zend_extension=/usr/lib/php5/20121212+lfs/ioncube_loader_lin_5.5.so
+END
+        cat > /etc/php5/cli/conf.d/10-zenguard.ini <<END
+zend_extension=/usr/lib/php5/20121212+lfs/ZendGuardLoader.so
+END
         if [ -f /etc/php5/fpm/php.ini ]
             then
         cat > /etc/php5/fpm/conf.d/01-ioncube.ini <<END
@@ -587,6 +601,157 @@ END
 
 	update-rc.d php5-fpm defaults
 	service php5-fpm restart
+
+}
+
+function install_php5.6_fpm {
+    sudo echo "deb http://ppa.launchpad.net/ondrej/php5-5.6/ubuntu $(lsb_release -sc) main"  >> /etc/apt/sources.list.d/php7.list
+    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E5267A6C 
+    sudo apt-get -q -y update
+
+    # PHP core
+    check_install php5-fpm php5-fpm
+
+    # PHP modules
+    DEBIAN_FRONTEND=noninteractive apt-get -q -y --force-yes install php5-apcu php5-curl php5-gd php5-intl php5-mcrypt mcrypt php5-mysql snmp php5-imap php5-ldap
+    if [ ! -f "/etc/php5/fpm/conf.d/20-mcrypt.ini" ]
+        then
+        ln -s /etc/php5/mods-available/mcrypt.ini /etc/php5/fpm/conf.d/20-mcrypt.ini
+    fi
+
+    echo 'Using PHP-FPM to manage PHP processes'
+
+    print_info "Taking configuration backups in /root/bkps; you may keep or delete this directory"
+    mkdir /root/bkps
+    mv /etc/php5/mods-available/apc.ini /root/bkps/apc.ini
+
+cat > /etc/php5/mods-available/apc.ini <<END
+[APC]
+extension=apc.so
+apc.enabled=1
+apc.shm_segments=1
+apc.shm_size=32M
+apc.ttl=7200
+apc.user_ttl=7200
+apc.num_files_hint=1024
+apc.mmap_file_mask=/tmp/apc.XXXXXX
+apc.max_file_size = 1M
+apc.post_max_size = 1000M
+apc.upload_max_filesize = 1000M
+apc.enable_cli=0
+apc.rfc1867=0
+END
+
+    cat > /etc/nginx/fastcgi_php <<END
+location ~ \.php\$ {
+    include /etc/nginx/fastcgi_params;
+
+    try_files \$uri =404;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    if (-f \$request_filename) {
+        fastcgi_pass unix:/var/run/php5-fpm.sock;
+    }
+}
+END
+
+    cat >> /etc/nginx/fastcgi_params <<END
+
+# Added by GIANG@HOST30K.COM
+fastcgi_connect_timeout 60;
+fastcgi_send_timeout 180;
+fastcgi_read_timeout 180;
+fastcgi_buffer_size 256k;
+fastcgi_buffers 4 256k;
+fastcgi_busy_buffers_size 256k;
+fastcgi_temp_file_write_size 256k;
+fastcgi_intercept_errors on;
+END
+
+    cat > /etc/php5/fpm/pool.d/www.conf <<END
+[www]
+user = www-data
+group = www-data
+listen = /var/run/php5-fpm.sock
+
+listen.owner = www-data
+listen.group = www-data
+
+pm = ondemand
+pm.max_children = 10
+pm.max_requests = 500
+pm.process_idle_timeout = 10s
+php_flag[expose_php] = off
+php_value[max_execution_time] = 120
+php_value[memory_limit] = 32M
+END
+    if [ -f /etc/php5/fpm/php.ini ]
+        then
+            sed -i \
+                "s/upload_max_filesize = 2M/upload_max_filesize = 256M/" \
+                /etc/php5/fpm/php.ini
+            sed -i \
+                "s/post_max_size = 8M/post_max_size = 256M/" \
+                /etc/php5/fpm/php.ini
+    fi
+
+    if [ `uname -m` = "x86_64" ]; then
+
+        wget -q http://downloads2.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+        tar -xf ioncube_loaders_lin_x86-64.tar.gz
+        cp -f ioncube/ioncube_loader_lin_5.6.so /usr/lib/php5/20131226/
+        rm -f -r ioncube*
+
+        wget -q http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-x86_64.tar.gz
+        tar -xf zend-loader-php5.6-linux-x86_64.tar.gz
+        cp -f zend-loader-php5.6-linux-x86_64/ZendGuardLoader.so /usr/lib/php5/20131226/
+        rm -f -r zend-loader*
+
+        cat > /etc/php5/cli/conf.d/01-ioncube.ini <<END
+zend_extension=/usr/lib/php5/20131226/ioncube_loader_lin_5.6.so
+END
+        cat > /etc/php5/cli/conf.d/10-zenguard.ini <<END
+zend_extension=/usr/lib/php5/20131226/ZendGuardLoader.so
+END
+
+        cat > /etc/php5/fpm/conf.d/01-ioncube.ini <<END
+zend_extension=/usr/lib/php5/20131226/ioncube_loader_lin_5.6.so
+END
+        cat > /etc/php5/fpm/conf.d/10-zenguard.ini <<END
+zend_extension=/usr/lib/php5/20131226/ZendGuardLoader.so
+END
+
+    else
+
+        wget -q http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-i386.tar.gz
+        tar -xf zend-loader-php5.6-linux-i386.tar.gz
+        cp -f zend-loader-php5.6-linux-i386/ZendGuardLoader.so /usr/lib/php5/20131226+lfs/
+        rm -f -r zend-loader*
+
+        wget -q http://downloads2.ioncube.com/loader_downloads/ioncube_loaders_lin_x86.tar.gz
+        tar -xf ioncube_loaders_lin_x86.tar.gz
+        cp -f ioncube/ioncube_loader_lin_5.6.so /usr/lib/php5/20131226+lfs/
+        rm -f -r ioncube*
+
+        cat > /etc/php5/cli/conf.d/01-ioncube.ini <<END
+zend_extension=/usr/lib/php5/20131226+lfs/ioncube_loader_lin_5.6.so
+END
+        cat > /etc/php5/cli/conf.d/10-zenguard.ini <<END
+zend_extension=/usr/lib/php5/20131226+lfs/ZendGuardLoader.so
+END
+
+        cat > /etc/php5/fpm/conf.d/01-ioncube.ini <<END
+zend_extension=/usr/lib/php5/20131226+lfs/ioncube_loader_lin_5.6.so
+END
+        cat > /etc/php5/fpm/conf.d/10-zenguard.ini <<END
+zend_extension=/usr/lib/php5/20131226+lfs/ZendGuardLoader.so
+END
+
+
+    fi
+
+    update-rc.d php5-fpm defaults
+    service php5-fpm restart
 
 }
 
@@ -995,6 +1160,9 @@ php)
     ;;
 php-fpm)
     install_php_fpm
+    ;;
+php5.6-fpm)
+    install_php5.6_fpm
     ;;
 php7-fpm)
     install_php7_fpm
