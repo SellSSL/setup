@@ -605,7 +605,7 @@ END
 }
 
 function install_php5.6_fpm {
-    sudo echo "deb http://ppa.launchpad.net/ondrej/php5-5.6/ubuntu $(lsb_release -sc) main"  >> /etc/apt/sources.list.d/php7.list
+    sudo echo "deb http://ppa.launchpad.net/ondrej/php5-5.6/ubuntu $(lsb_release -sc) main"  >> /etc/apt/sources.list.d/php5.6.list
     sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E5267A6C 
     sudo apt-get -q -y update
 
