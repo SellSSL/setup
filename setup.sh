@@ -176,7 +176,7 @@ function install_mariadb {
     # check_install mysqld mysql-server
     
     cat > /etc/apt/sources.list.d/mariadb.list <<END
-deb http://ftp.osuosl.org/pub/mariadb/repo/10.0/ubuntu $(lsb_release -sc) main
+deb http://nyc2.mirrors.digitalocean.com/mariadb/repo/10.1/ubuntu $(lsb_release -sc) main
 END
     sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db 
     apt-get update -y -q --force-yes
@@ -625,9 +625,9 @@ function install_php5.6_fpm {
     mkdir /root/bkps
     mv /etc/php5/mods-available/apc.ini /root/bkps/apc.ini
 
-cat > /etc/php5/mods-available/apc.ini <<END
+cat > /etc/php5/mods-available/apcu.ini <<END
 [APC]
-extension=apc.so
+extension=apcu.so
 apc.enabled=1
 apc.shm_segments=1
 apc.shm_size=32M
@@ -707,19 +707,18 @@ END
         cp -f zend-loader-php5.6-linux-x86_64/ZendGuardLoader.so /usr/lib/php5/20131226/
         rm -f -r zend-loader*
 
-        cat > /etc/php5/cli/conf.d/01-ioncube.ini <<END
+		cat > /etc/php5/mods-available/ioncube.ini <<END
 zend_extension=/usr/lib/php5/20131226/ioncube_loader_lin_5.6.so
 END
-        cat > /etc/php5/cli/conf.d/10-zenguard.ini <<END
+        cat > /etc/php5/mods-available/zenguard.ini <<END
 zend_extension=/usr/lib/php5/20131226/ZendGuardLoader.so
 END
+		
+		ln -s /etc/php5/mods-available/ioncube.ini /etc/php5/fpm/conf.d/01-ioncube.ini
+		ln -s /etc/php5/mods-available/ioncube.ini /etc/php5/cli/conf.d/01-ioncube.ini
 
-        cat > /etc/php5/fpm/conf.d/01-ioncube.ini <<END
-zend_extension=/usr/lib/php5/20131226/ioncube_loader_lin_5.6.so
-END
-        cat > /etc/php5/fpm/conf.d/10-zenguard.ini <<END
-zend_extension=/usr/lib/php5/20131226/ZendGuardLoader.so
-END
+		ln -s /etc/php5/mods-available/zenguard.ini /etc/php5/fpm/conf.d/10-zenguard.ini
+		ln -s /etc/php5/mods-available/zenguard.ini /etc/php5/cli/conf.d/10-zenguard.ini
 
     else
 
@@ -733,20 +732,18 @@ END
         cp -f ioncube/ioncube_loader_lin_5.6.so /usr/lib/php5/20131226+lfs/
         rm -f -r ioncube*
 
-        cat > /etc/php5/cli/conf.d/01-ioncube.ini <<END
+        cat > /etc/php5/mods-available/ioncube.ini <<END
 zend_extension=/usr/lib/php5/20131226+lfs/ioncube_loader_lin_5.6.so
 END
-        cat > /etc/php5/cli/conf.d/10-zenguard.ini <<END
+        cat > /etc/php5/mods-available/zenguard.ini <<END
 zend_extension=/usr/lib/php5/20131226+lfs/ZendGuardLoader.so
 END
 
-        cat > /etc/php5/fpm/conf.d/01-ioncube.ini <<END
-zend_extension=/usr/lib/php5/20131226+lfs/ioncube_loader_lin_5.6.so
-END
-        cat > /etc/php5/fpm/conf.d/10-zenguard.ini <<END
-zend_extension=/usr/lib/php5/20131226+lfs/ZendGuardLoader.so
-END
+		ln -s /etc/php5/mods-available/ioncube.ini /etc/php5/fpm/conf.d/01-ioncube.ini
+		ln -s /etc/php5/mods-available/ioncube.ini /etc/php5/cli/conf.d/01-ioncube.ini
 
+		ln -s /etc/php5/mods-available/zenguard.ini /etc/php5/fpm/conf.d/10-zenguard.ini
+		ln -s /etc/php5/mods-available/zenguard.ini /etc/php5/cli/conf.d/10-zenguard.ini
 
     fi
 
